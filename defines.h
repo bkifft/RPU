@@ -157,6 +157,8 @@ struct sd_scr
     int sd_version;
 };
 
+struct emmc_block_dev;
+
 struct block_device {
         char *driver_name;
         char *device_name;
@@ -166,7 +168,7 @@ struct block_device {
         int supports_multiple_block_read;
         int supports_multiple_block_write;
 
-        int (*read)(struct block_device *dev, uint8_t *buf, size_t buf_size, uint32_t block_num, char spi);
+        int (*read)(struct emmc_block_dev *dev, uint8_t *buf, size_t buf_size, uint32_t block_num, char spi);
         int (*write)(struct block_device *dev, uint8_t *buf, size_t buf_size, uint32_t block_num, char spi);
         size_t block_size;
         size_t num_blocks;
@@ -247,7 +249,7 @@ static uint32_t sd_commands[] = {
     SD_CMD_RESERVED(39),
     SD_CMD_RESERVED(40),
     SD_CMD_RESERVED(41),
-    SD_CMD_INDEX(42) | SD_RESP_R1,
+    SD_CMD_INDEX(42) | SD_RESP_R1 | SD_DATA_WRITE,
     SD_CMD_RESERVED(43),
     SD_CMD_RESERVED(44),
     SD_CMD_RESERVED(45),
