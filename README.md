@@ -15,8 +15,11 @@ Requirements:
 
 -3DS (at least) 4 wire NAND -> SD hardware mod.
 
+-NAND backup of said 3DS
+
 
 
 Boot the Pi, plug the 4 wire mod SD adapter in the Pi's SD slot, run the program.
+It will erase the NAND and remove the lock, so it can be reflashed using a SD2USB adapter.
 
 
