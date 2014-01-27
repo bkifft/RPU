@@ -3,6 +3,9 @@ RPU
 
 Raspberry Pi based 3DS unbricker
 
+Warning: Even though this tool has successfully fixed a GW/clone bricked 3DS, it's not yet ment for unsupervised enduser use. I (or someone else, it's under the GPL after all) will make it a wee bit more stable in the comming days.
+
+
 This tool is erotic cartoon ware.
 
 If you like it please send one drawn erotic picture to rpu.bkifft.gbatemp@gmail.com (even if you draw one in paint, everyone likes to draw the cock and balls).
