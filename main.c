@@ -64,6 +64,7 @@ do {                                                        \
 #define GPIO_CLR  *(gpio + 10) 
 #define GPIO_READ(g)  *(gpio + 13) &= (1<<(g))
 
+typedef uint32_t useconds_t; //more ugly hacks
 uint32_t* emmc;
 
 
