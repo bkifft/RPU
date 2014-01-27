@@ -23,6 +23,7 @@
 * THE SOFTWARE.
 */
 
+#define _BSD_SOURCE //ugly hack but the rewrite follows (nned to replace usleep() with the imho way less handy nanosleep()
 
 #include <stdlib.h>
 #include <string.h>
@@ -31,11 +32,14 @@
 #include <stdint.h>
 #include <sys/mman.h>
 #include <sys/types.h>
+#include <dirent.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <ctype.h>
+#include <errno.h>
+
 #include "defines.h" //contains all the adresses, offsets, command structures and bitmasks
 #include "util.h"
 
@@ -62,8 +66,7 @@ do {                                                        \
 
 uint32_t* emmc;
 
-int sd_read(struct emmc_block_dev *, uint8_t *, size_t buf_size, uint32_t, char);
-int sd_write(struct block_device *, uint8_t *, size_t buf_size, uint32_t, char);
+
 static int sd_ensure_data_mode(struct emmc_block_dev *edev, char spi);
 
 
@@ -931,15 +934,9 @@ int sd_card_init(struct emmc_block_dev *emmc_dev, char force_erase)
         memset(ret, 0, sizeof(struct emmc_block_dev));
         
 		
-		ret->bd.driver_name = driver_name;
-        ret->bd.device_name = device_name;
         ret->bd.block_size = 1;
-        ret->bd.read = sd_read;
 
-    ret->bd.write = sd_write;
 
-    ret->bd.supports_multiple_block_read = 1;
-    ret->bd.supports_multiple_block_write = 1;
 	
         ret->base_clock = base_clock;
 
@@ -980,18 +977,7 @@ int sd_card_init(struct emmc_block_dev *emmc_dev, char force_erase)
 		
 		}
 		
-
-/*
-		printf("CMD1:(arg0) init and supply OCR 0xFF8080 \n");
-		// Send CMD1 
-        sd_issue_command(ret, SEND_OP_COND, 0xFF8080, 1000000);
-		print_response_reg(emmc);
-        if(FAIL(ret))
-        {
-        printf("SD: no CMD1 (0xFF8080) response\n");
-        return -1;
-        }
-	*/	
+	
 		printf("CMD2: CID and id mode\n");
         // Send CMD2 to get the cards CID
         sd_issue_command(ret, ALL_SEND_CID, 0, 500000);
@@ -1006,7 +992,7 @@ int sd_card_init(struct emmc_block_dev *emmc_dev, char force_erase)
         uint32_t card_cid_3 = ret->last_r3;
 
 
-       // printf("SD: card CID: %08x%08x%08x%08x\n", card_cid_3, card_cid_2, card_cid_1, card_cid_0);
+        printf("SD: card CID: %08x%08x%08x%08x\n", card_cid_3, card_cid_2, card_cid_1, card_cid_0);
 
         uint32_t *dev_id = (uint32_t *)malloc(4 * sizeof(uint32_t));
         dev_id[0] = card_cid_0;
@@ -1351,51 +1337,6 @@ static int sd_do_data_command(struct emmc_block_dev *edev, int is_write, uint8_t
     return 0;
 }
 
-int sd_read(struct emmc_block_dev *edev, uint8_t *buf, size_t buf_size, uint32_t block_no, char spi)
-{
-        // Check the status of the card
-        
-    if(sd_ensure_data_mode(edev, spi) != 0)
-        return -1;
-
-
-        printf("SD: read() card ready, reading from block %u\n", block_no);
-
-
-    if(sd_do_data_command(edev, 0, buf, buf_size, block_no) < 0)
-        return -1;
-
-
-        printf("SD: data read successful\n");
-
-
-        return buf_size;
-}
-
-
-int sd_write(struct block_device *dev, uint8_t *buf, size_t buf_size, uint32_t block_no, char spi)
-{
-
-return -1; //no write for now
-        // Check the status of the card
-        struct emmc_block_dev *edev = (struct emmc_block_dev *)dev;
-    if(sd_ensure_data_mode(edev, spi) != 0)
-        return -1;
-
-
-        printf("SD: write() card ready, reading from block %u\n", block_no);
-
-
-    if(sd_do_data_command(edev, 1, buf, buf_size, block_no) < 0)
-        return -1;
-
-
-        printf("SD: write read successful\n");
-
-
-        return buf_size;
-}
-
 
 void view_register(uint32_t* emmc){
  char in;
@@ -1436,7 +1377,7 @@ void force_erase(struct emmc_block_dev *emmc_dev){
 void dedication(){
  printf("You might ask: \"bkifft, why the fuck are you dedicating this tool to the user crazyace2011?\" \n\n");
  printf("Easy: this shithead gave me the spite fuelled energy to write it.\n\n");
- printf("Quotes from http://gbatemp.net/threads/has-anyone-with-a-brick-been-able-to-recover.360647/:\n\n \"im trying to understand something everyone is spitting out information that they truly don't know. the emmc is wiped or locked the nand is wiped out. no one has the hardware to know 100% but everyone is talking like they know if you knew you would have a way of fixing not just talking about whats wrong. people are just claiming to know what is wrong when they don't have the equipment back up the theory.\"\n\n");
+ printf("Quotes from http://gbatemp.net/threads/has-anyone-with-a-brick-been-able-to-recover.360647/:\n\n\"im trying to understand something everyone is spitting out information that they truly don't know. the emmc is wiped or locked the nand is wiped out. no one has the hardware to know 100% but everyone is talking like they know if you knew you would have a way of fixing not just talking about whats wrong. people are just claiming to know what is wrong when they don't have the equipment back up the theory.\"\n\n");
  printf("\"im not saying you per say im just saying that everyone is talking like they are Einstein and know what is going on. who's to say that something is blocking the emmc controller not the emmc controller itself I don't know what it could be but im not throwing out stuff. im not ranting that you are doing it. its just people say something tech about the insides of a 3ds but the thing is no one know whats going on inside the 3ds and what the brick code actually did to the unit. yes we know that the system isn't responding to the nand that was installed by Nintendo but we don't know exactly what the gateway brick code did.\"\n\n"); 
  printf("\"I already said that I don't know how but you smart ass people think you know but honestly you don't know shit about it either. no one said you had to answer to my comment so stfu and ignore my post\"\n\n");
  printf("\"like we need more pointless 3ds brick threads real mature. must be a bunch of little kids that think they know everything. typical\"\n\n");
@@ -1458,6 +1399,21 @@ int main(){
  uint32_t arg;
  char in;
  
+
+ 
+ fd = open("/dev/mem", O_RDWR|O_SYNC);
+ if (0 > fd) {
+  perror("Error opening /dev/mem");
+  printf("This tool needs super user rights. Run it as user root or use sudo\n");
+  exit(EXIT_FAILURE);
+ }
+ 
+ if ( (opendir("/sys/bus/mmc/")) || (ENOENT != errno)){
+	printf("It seems the MMC/SD drivers are loaded. Please boot a kernel without it.\n");
+	exit(EXIT_FAILURE);
+ }
+
+
  
  printf("\e[1;1H\e[2J");
  printf("\n\n\n                  Dedicated to crazyace2011 @GBAtemp (crazyace @maxconsole)\n");
@@ -1472,11 +1428,6 @@ int main(){
  sleep(10);
 
  
- fd = open("/dev/mem", O_RDWR|O_SYNC);
- if ( 0 > fd) {
-  perror("Error opening /dev/mem");
-  exit(EXIT_FAILURE);
- }
  
  peri_base = mmap(NULL, BLOCKSIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, BCM2708_PERI_BASE);
  
@@ -1484,6 +1435,8 @@ int main(){
   perror("Error while mapping");
   exit(EXIT_FAILURE);
  }
+
+
 
  emmc = peri_base + EMMC_OFFSET;
  gpio = peri_base + GPIO_OFFSET;
