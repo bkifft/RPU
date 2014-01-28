@@ -8,7 +8,7 @@ Warning: Even though this tool has successfully fixed a GW/clone bricked 3DS, it
 
 This tool is erotic cartoon ware.
 
-If you like it please send one drawn erotic picture to rpu.bkifft.gbatemp@gmail.com (even if you draw one in paint, everyone likes to draw the cock and balls).
+If you like it please send one erotic cartoon picture to rpu.bkifft.gbatemp@gmail.com (even if you draw one in paint yourself, everyone likes to draw the cock and balls).
 
 WARNING: Do not run this tool with a kernel that has the MMC/SD subsystem enabled!
 

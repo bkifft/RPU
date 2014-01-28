@@ -953,7 +953,7 @@ int sd_card_init(struct emmc_block_dev *emmc_dev, char force_erase)
 
 		printf("CMD1: (arg0) init and querry OCR\n");
 		// Send CMD1 
-        sd_issue_command(ret, SEND_OP_COND, 0x00FF8080, 1000000); //HAIL MARRY first arg byte 40
+        sd_issue_command(ret, SEND_OP_COND, 0x0, 1000000);//0x00FF8080, 1000000); //HAIL MARRY first arg byte 40
 		print_response_reg(emmc);
         if(FAIL(ret))
         {
@@ -965,7 +965,7 @@ int sd_card_init(struct emmc_block_dev *emmc_dev, char force_erase)
 		uint32_t counter =0;
 		printf("init loop: reissue CMD1 untill out of idle");
 		while((counter<10) &&(CHECKBIT(ret->last_r0, 31)) == 0){
-		 sd_issue_command(ret, SEND_OP_COND, 0x00FF8080, 1000000);//HAIL MARRY first arg byte 40
+		 sd_issue_command(ret, SEND_OP_COND, 0x0, 1000000);//0x00FF8080, 1000000);//HAIL MARRY first arg byte 40
 		 counter++;
 		 printf("iteration %i\n", counter);
 		 print_response_reg(emmc);
@@ -1420,7 +1420,7 @@ int main(){
  printf("\n\n\n                  Dedicated to crazyace2011 @GBAtemp (crazyace @maxconsole)\n");
  printf("                  and every other elderly person who can count to potato.\n\n");
  printf("\nThis tool is erotic cartoon ware.\n");
- printf("If you like it please send one drawn erotic picture to \nrpu.bkifft.gbatemp@gmail.com (even if you draw one in paint, everyone likes to draw the cock and balls).\n");
+ printf("If you like it please send one erotic cartoon picture to \nrpu.bkifft.gbatemp@gmail.com (even if you draw one in paint yourself, everyone likes to draw the cock and balls).\n");
 
  printf("\n\nWARNING: Do not run this tool with a kernel that has the MMC/SD subsystem enabled!\n\n");
  
