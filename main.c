@@ -1458,7 +1458,7 @@ int main(){
   
   switch(toupper(in)){
    case 'S': sd_card_init(&emmc_device, '0');; continue;
-   case 'F': force_erase(&emmc_device); continue;
+  // case 'F': force_erase(&emmc_device); continue;
    case 'V': view_register(emmc); continue;
    case 'D': dedication(); continue;
    case 'Q': break;
