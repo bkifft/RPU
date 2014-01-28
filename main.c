@@ -23,6 +23,8 @@
 * THE SOFTWARE.
 */
 
+//#define DEBUG
+
 #define _BSD_SOURCE //ugly hack but the rewrite follows (nned to replace usleep() with the imho way less handy nanosleep()
 
 #include <stdlib.h>
@@ -343,10 +345,11 @@ static uint32_t sd_get_clock_divider(uint32_t base_clock, uint32_t target_rate)
         if(divisor != 0)
             denominator = divisor * 2;
         int actual_clock = base_clock / denominator;
+#ifdef DEBUG
         printf("EMMC: base_clock: %i, target_rate: %i, divisor: %08x, "
                "actual_clock: %i, ret: %08x\n", base_clock, target_rate,
                divisor, actual_clock, ret);
-
+#endif
 
         return ret;
     }
@@ -390,8 +393,9 @@ static int sd_switch_clock_rate(uint32_t base_clock, uint32_t target_rate)
     control1 |= (1 << 2);
     mmio_write(EMMC_BASE + EMMC_CONTROL1, control1);
     usleep(2000);
-
+#ifdef DEBUG
     printf("EMMC: successfully set clock rate to %i Hz\n", target_rate);
+#endif
     return 0;
 }
 
@@ -566,10 +570,9 @@ static void sd_issue_command_int(struct emmc_block_dev *dev, uint32_t cmd_reg, u
                 cur_byte_no += 4;
                 cur_buf_addr++;
             }
-
-
-                        printf("SD_send_int: block %i transfer complete\n", cur_block);
-
+#ifdef DEBUG
+            printf("SD_send_int: block %i transfer complete\n", cur_block);
+#endif
 
             cur_block++;
         }
@@ -614,9 +617,10 @@ static void sd_handle_card_interrupt(struct emmc_block_dev *dev)
 
     uint32_t status = mmio_read(EMMC_BASE + EMMC_STATUS);
 
+#ifdef DEBUG
     printf("SD_handle_intr: card interrupt\n");
     printf("SD_handle_intr: controller status: %08x\n", status);
-
+#endif
 
     // Get the card status
     if(dev->card_rca)
@@ -631,9 +635,9 @@ static void sd_handle_card_interrupt(struct emmc_block_dev *dev)
         }
         else
         {
-
+#ifdef DEBUG
             printf("SD_handle_intr: card status: %08x\n", dev->last_r0);
-
+#endif
         }
     }
     else
@@ -754,9 +758,9 @@ static void sd_issue_command(struct emmc_block_dev *dev, uint32_t command, uint3
     if(command & IS_APP_CMD)
     {
         command &= 0xff;
-
+#ifdef DEBUG
         printf("sd_issue_command: issuing command ACMD%i\n", command);
-
+#endif
 
         if(sd_acommands[command] == SD_CMD_RESERVED(0))
         {
@@ -778,9 +782,9 @@ static void sd_issue_command(struct emmc_block_dev *dev, uint32_t command, uint3
     }
     else
     {
-
+#ifdef DEBUG
         printf("sd_issue_command: issuing command CMD%i\n", command);
-
+#endif
 
         if(sd_commands[command] == SD_CMD_RESERVED(0))
         {
@@ -815,6 +819,11 @@ int sd_card_init(struct emmc_block_dev *emmc_dev, char force_erase)
                64 * sizeof(uint32_t));
         return -1;
     }
+	
+	
+	
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//host init
 
               // Reset the controller
 	
@@ -832,24 +841,24 @@ int sd_card_init(struct emmc_block_dev *emmc_dev, char force_erase)
                 printf("EMMC: controller did not reset properly\n");
                 return -1;
         }
-		
+#ifdef DEBUG
 		printf("EMMC: control0: %08x, control1: %08x, control2: %08x\n",
                         mmio_read(EMMC_BASE + EMMC_CONTROL0),
                         mmio_read(EMMC_BASE + EMMC_CONTROL1),
             mmio_read(EMMC_BASE + EMMC_CONTROL2));
-
+#endif
 
         // Read the capabilities registers
         capabilities_0 = mmio_read(EMMC_BASE + EMMC_CAPABILITIES_0);
         capabilities_1 = mmio_read(EMMC_BASE + EMMC_CAPABILITIES_1);
-
+#ifdef DEBUG
         printf("EMMC: capabilities: %08x%08x\n", capabilities_1, capabilities_0);
-
+#endif
 
         // Check for a valid card
-
+#ifdef DEBUG
         printf("EMMC: checking for an inserted card\n");
-
+#endif
 		TIMEOUT_WAIT(mmio_read(EMMC_BASE + EMMC_STATUS) & (1 << 16), 500000);
         uint32_t status_reg = mmio_read(EMMC_BASE + EMMC_STATUS);
         if((status_reg & (1 << 16)) == 0)
@@ -857,9 +866,9 @@ int sd_card_init(struct emmc_block_dev *emmc_dev, char force_erase)
                 printf("EMMC: no card inserted\n");
                 return -1;
         }
-
+#ifdef DEBUG
         printf("EMMC: status: %08x\n", status_reg);
-
+#endif
 
         // Clear control2
         mmio_write(EMMC_BASE + EMMC_CONTROL2, 0);
@@ -873,9 +882,9 @@ int sd_card_init(struct emmc_block_dev *emmc_dev, char force_erase)
         }
 
         // Set clock rate to something slow
-
+#ifdef DEBUG
         printf("EMMC: setting clock rate\n");
-
+#endif
         control1 = mmio_read(EMMC_BASE + EMMC_CONTROL1);
         control1 |= 1;                        // enable clock
 
@@ -896,23 +905,23 @@ int sd_card_init(struct emmc_block_dev *emmc_dev, char force_erase)
                 printf("EMMC: controller's clock did not stabilise within 1 second\n");
                 return -1;
         }
-
+#ifdef DEBUG
         printf("EMMC: control0: %08x, control1: %08x\n",
                         mmio_read(EMMC_BASE + EMMC_CONTROL0),
                         mmio_read(EMMC_BASE + EMMC_CONTROL1));
-
+#endif
 
         // Enable the SD clock
-
+#ifdef DEBUG
         printf("EMMC: enabling SD clock\n");
-
+#endif
         usleep(2000);
         control1 = mmio_read(EMMC_BASE + EMMC_CONTROL1);
         control1 |= 4;
         mmio_write(EMMC_BASE + EMMC_CONTROL1, control1);
         usleep(2000);
 
-        // Mask off sending interrupts to the ARM
+        // Mask off sending interrupts to the ARM, we'll poll the interrrupt register ourselves
         mmio_write(EMMC_BASE + EMMC_IRPT_EN, 0);
         // Reset interrupts
         mmio_write(EMMC_BASE + EMMC_INTERRUPT, 0xffffffff);
@@ -924,13 +933,12 @@ int sd_card_init(struct emmc_block_dev *emmc_dev, char force_erase)
         mmio_write(EMMC_BASE + EMMC_IRPT_MASK, irpt_mask);
 
         usleep(2000);
+		
+		
 
     // Prepare the device structure
         struct emmc_block_dev *ret;
-        if(emmc_dev == NULL)
-                ret = (struct emmc_block_dev *)malloc(sizeof(struct emmc_block_dev));
-        else
-                ret = emmc_dev;
+        ret = emmc_dev;
 
         memset(ret, 0, sizeof(struct emmc_block_dev));
         
@@ -940,60 +948,71 @@ int sd_card_init(struct emmc_block_dev *emmc_dev, char force_erase)
 
 	
         ret->base_clock = base_clock;
+		
+		
+		
+		
+/////////////////////////////////////////////////////////////////////////////////////////////////
+////MMC init
+		
 
         printf("CMD0: idle\n");
 		// Send CMD0 to the card (reset to idle state)
-        sd_issue_command(ret, GO_IDLE_STATE, 0, 500000);
-		print_response_reg(emmc);
+        sd_issue_command(ret, GO_IDLE_STATE, 0, 500000); //"3 2 1  everyone is fast asleep now"
+		//print_response_reg(emmc);
         if(FAIL(ret))
         {
-        printf("SD_init: no CMD0 response\n");
-        return -1;
+			printf("SD_init: no CMD0 response\n");
+			print_response_reg(emmc);
+			return -1;
         }
 
-		printf("CMD1: (arg0) init and querry OCR\n");
+		printf("CMD1(0) : init and querry OCR\n");
 		// Send CMD1 
-        sd_issue_command(ret, SEND_OP_COND, 0x0, 1000000);//0x00FF8080, 1000000); //HAIL MARRY first arg byte 40
-		print_response_reg(emmc);
+        sd_issue_command(ret, SEND_OP_COND, 0x0, 1000000); //"anybody there?"
+		uint32_t voltage_range_response = ret->last_r0;
         if(FAIL(ret))
         {
-        printf("SD_init: no CMD1 (0) response\n");
-        return -1;
+			printf("SD_init: no CMD1 (0) response\n");
+			print_response_reg(emmc);
+			return -1;
         }
 		
 		usleep(1000000);
 		uint32_t counter =0;
-		printf("init loop: reissue CMD1 untill out of idle");
-		while((counter<10) &&(CHECKBIT(ret->last_r0, 31)) == 0){
-		 sd_issue_command(ret, SEND_OP_COND, 0x0, 1000000);//0x00FF8080, 1000000);//HAIL MARRY first arg byte 40
-		 counter++;
-		 printf("iteration %i\n", counter);
-		 print_response_reg(emmc);
-		 usleep(1000000);
-         if(FAIL(ret))
-         {
-         printf("SD_init: no CMD1 (0) response\n");
-         return -1;
-         }
+		printf("CMD1(0x%08X) : repeat untill ready\n", voltage_range_response);
+		while((counter<23) &&(CHECKBIT(ret->last_r0, 31)) == 0){
+			sd_issue_command(ret, SEND_OP_COND, voltage_range_response, 1000000); //"sure, we can handle that voltage spec. no probs"
+			counter++;
+#ifdef DEBUG
+			printf("iteration %i\n", counter);
+#endif
+			usleep(1000000);
+			if(FAIL(ret))
+			{
+				print_response_reg(emmc);
+				printf("SD_init: no CMD1 (0) response\n");
+				return -1;
+			}
 		
 		}
 		
 	
 		printf("CMD2: CID and id mode\n");
         // Send CMD2 to get the cards CID
-        sd_issue_command(ret, ALL_SEND_CID, 0, 500000);
+        sd_issue_command(ret, ALL_SEND_CID, 0, 500000); //"everyone, shout your CID. the one who shouts loudest gets activated"
         if(FAIL(ret))
         {
-         printf("SD_init: error sending ALL_SEND_CID\n");
-         return -1;
+			printf("SD_init: error sending ALL_SEND_CID\n");
+			return -1;
         }
         uint32_t card_cid_0 = ret->last_r0;
         uint32_t card_cid_1 = ret->last_r1;
         uint32_t card_cid_2 = ret->last_r2;
         uint32_t card_cid_3 = ret->last_r3;
 
-
-        printf("SD: card CID: %08x%08x%08x%08x\n", card_cid_3, card_cid_2, card_cid_1, card_cid_0);
+		printf("\nWarning! The CID is an unique serialnumber which might be traceable. Do not publish it in any way!\n");
+        printf("\tCID: %08X%08X%08X%08X\n\n", card_cid_3, card_cid_2, card_cid_1, card_cid_0);
 
         uint32_t *dev_id = (uint32_t *)malloc(4 * sizeof(uint32_t));
         dev_id[0] = card_cid_0;
@@ -1007,19 +1026,20 @@ int sd_card_init(struct emmc_block_dev *emmc_dev, char force_erase)
 		
 		printf("CMD3: assign RCA and standby mode\n");
         // Send CMD3 to assign rca andenter the data state
-        sd_issue_command(ret, SEND_RELATIVE_ADDR, ret->card_rca << 16, 500000);
-		print_response_reg(emmc);
+        sd_issue_command(ret, SEND_RELATIVE_ADDR, ret->card_rca << 16, 500000); //"you there who shouted loudest! from now on i'll call you beef!"
+		
         if(FAIL(ret))
-    {
-        printf("SD_init: error sending SEND_RELATIVE_ADDR\n");
-        free(ret);
-        return -1;
-    }
+		{
+			printf("SD_init: error sending SEND_RELATIVE_ADDR\n");
+			print_response_reg(emmc);
+			return -1;
+		}
 
         uint32_t cmd3_resp = ret->last_r0;
 
+#ifdef DEBUG
         printf("SD_init: CMD3 response: %08x\n", cmd3_resp);
-
+#endif
 
          
         uint32_t crc_error = (cmd3_resp >> 15) & 0x1;
@@ -1031,7 +1051,6 @@ int sd_card_init(struct emmc_block_dev *emmc_dev, char force_erase)
         if(crc_error)
         {
                 printf("SD_init: CRC error\n");
-                free(ret);
                 free(dev_id);
                 return -1;
         }
@@ -1039,7 +1058,6 @@ int sd_card_init(struct emmc_block_dev *emmc_dev, char force_erase)
         if(illegal_cmd)
         {
                 printf("SD_init: illegal command\n");
-                free(ret);
                 free(dev_id);
                 return -1;
         }
@@ -1047,7 +1065,6 @@ int sd_card_init(struct emmc_block_dev *emmc_dev, char force_erase)
         if(error)
         {
                 printf("SD_init: generic error\n");
-                free(ret);
                 free(dev_id);
                 return -1;
         }
@@ -1055,23 +1072,23 @@ int sd_card_init(struct emmc_block_dev *emmc_dev, char force_erase)
         if(!ready)
         {
                 printf("SD_init: not ready for data\n");
-                free(ret);
                 free(dev_id);
                 return -1;
         }
 
-
+#ifdef DEBUG
         printf("SD_init: RCA: %04x\n", ret->card_rca);
-
+#endif
 
 		// Send CMD9 to get the cards CSD
 		printf("CMD9: get CSD\n");
-        sd_issue_command(ret, SEND_CSD, ret->card_rca << 16, 500000);
-		print_response_reg(emmc);
+        sd_issue_command(ret, SEND_CSD, ret->card_rca << 16, 500000);//"hey beef, tell me more about you"
+		
         if(FAIL(ret))
         {
-         printf("SD_init: error sending SEND_CSD\n");
-         return -1;
+			printf("SD_init: error sending SEND_CSD\n");
+			print_response_reg(emmc);
+			return -1;
         }
         uint32_t card_csd_0 = ret->last_r0;
         uint32_t card_csd_1 = ret->last_r1;
@@ -1079,19 +1096,19 @@ int sd_card_init(struct emmc_block_dev *emmc_dev, char force_erase)
         uint32_t card_csd_3 = ret->last_r3;
 
 
-        printf("SD_init: card CSD: %08x%08x%08x%08x\n", card_csd_3, card_csd_2, card_csd_1, card_csd_0);
+        printf("\n\tCSD: %08X%08X%08X%08X\n\n", card_csd_3, card_csd_2, card_csd_1, card_csd_0);
 
 
 
         // Now select the card (toggles it to transfer state)
 		printf("CMD7: switch to transfer mode\n");
-        sd_issue_command(ret, SELECT_CARD, ret->card_rca << 16, 500000);
-		print_response_reg(emmc);
+        sd_issue_command(ret, SELECT_CARD, ret->card_rca << 16, 500000);//"ok beef, get ready to rumble"
+		
         if(FAIL(ret))
         {
-         printf("SD_init: error sending CMD7\n");
-         free(ret);
-         return -1;
+			printf("SD_init: error sending CMD7\n");
+			print_response_reg(emmc);
+			return -1;
         }
 
         uint32_t cmd7_resp = ret->last_r0;
@@ -1100,31 +1117,26 @@ int sd_card_init(struct emmc_block_dev *emmc_dev, char force_erase)
         if((status != 3) && (status != 4))
         {
                 printf("SD_init: invalid status (%i)\n", status);
-                free(ret);
+                print_response_reg(emmc);
                 free(dev_id);
                 return -1;
         }
 		
 		
 		printf("CMD13: get status register\n");
-        sd_issue_command(ret, SEND_STATUS, ret->card_rca << 16, 500000);
-		print_response_reg(emmc);
+        sd_issue_command(ret, SEND_STATUS, ret->card_rca << 16, 500000);//"beef, what are you up to right now"
+		
         if(FAIL(ret))
         {
-         printf("SD_init: error sending CMD13\n");
-         return -1;
+			printf("SD_init: error sending CMD13\n");
+			print_response_reg(emmc);
+			return -1;
         }
 
-
-        // CMD16: block length 1
-        printf("CMD16: setting blocklength to 1\n");
-         sd_issue_command(ret, SET_BLOCKLEN, 1, 500000);
-		 print_response_reg(emmc);
-         if(FAIL(ret))
-         {
-         printf("SD_init: error sending SET_BLOCKLEN\n");
-         return -1;
-         }
+		printf("MMC status: 0x%08X\n", ret->last_r0);
+		printf("\n\tMMC is %slocked.\n", (CHECKBIT(ret->last_r0, 25) == 1) ? "": "not ");
+		
+        
         
         ret->block_size = 1;
         uint32_t controller_block_size = mmio_read(EMMC_BASE + EMMC_BLKSIZECNT);
@@ -1134,6 +1146,16 @@ int sd_card_init(struct emmc_block_dev *emmc_dev, char force_erase)
 
 		if ('Y' == force_erase){
 			
+			// CMD16: block length 1
+			printf("CMD16: setting blocklength to 1\n");
+			sd_issue_command(ret, SET_BLOCKLEN, 1, 500000);//"beef, if i give you extra commands after an instruction they will only contain one word"
+			print_response_reg(emmc);
+			if(FAIL(ret))
+			{
+				printf("SD_init: error sending SET_BLOCKLEN\n");
+				return -1;
+			}
+		 
 			uint8_t force_erase_payload[513];
 			memset(force_erase_payload, 0, 513);
 			force_erase_payload[0] = 0b00001000;
@@ -1147,7 +1169,7 @@ int sd_card_init(struct emmc_block_dev *emmc_dev, char force_erase)
 			while(retry_count < max_retries)
 			{
 				
-				sd_issue_command(ret, LOCK_UNLOCK, ret->card_rca << 16, 180000000);
+				sd_issue_command(ret, LOCK_UNLOCK, ret->card_rca << 16, 180000000); //"beef, forget everything you know, you are no longer protected"
 
 				if(SUCCESS(ret))
 					break;
@@ -1451,7 +1473,7 @@ int main(){
  
  while(toupper(in) != 'Q'){
  
-  printf("(S)afe run (Querry only) | (F)orce erase (Dangerous!) | (V)iew Register | (D)edication | (Q)uit\n");
+  printf("\n(S)afe run (Querry only) | (F)orce erase (Dangerous!) | (V)iew Register | (D)edication | (Q)uit\n");
 
   scanf(" %c",&in);
   printf("\n");
