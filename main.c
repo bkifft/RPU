@@ -865,7 +865,7 @@ sd_issue_command (struct emmc_block_dev *dev, uint32_t command,
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 int
-sd_card_init (struct emmc_block_dev *emmc_dev, char force_erase)
+sd_card_init (struct emmc_block_dev *emmc_dev, char mode)
 {
   // Check the sanity of the sd_commands and sd_acommands structures
   if (sizeof (sd_commands) != (64 * sizeof (uint32_t)))
@@ -882,7 +882,7 @@ sd_card_init (struct emmc_block_dev *emmc_dev, char force_erase)
       return -1;
     }
 
-
+uint32_t controller_block_size;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //host init
@@ -1201,38 +1201,49 @@ sd_card_init (struct emmc_block_dev *emmc_dev, char force_erase)
     }
 
   printf ("MMC status: 0x%08X\n", ret->last_r0);
-  printf ("\n\tMMC is %slocked.\n",
+  printf ("\n\tMMC is %slocked.\n\n",
 	  (CHECKBIT (ret->last_r0, 25) == 1) ? "" : "not ");
 
 
 
-  ret->block_size = 1;
-  uint32_t controller_block_size = mmio_read (EMMC_BASE + EMMC_BLKSIZECNT);
-  controller_block_size &= (~0xfff);
-  controller_block_size |= 0x1;
-  mmio_write (EMMC_BASE + EMMC_BLKSIZECNT, controller_block_size);
+  
 
-  if ('Y' == force_erase)
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+//force erase
+
+
+
+  if (('F' == mode) && (CHECKBIT (ret->last_r0, 25) == 1))
     {
 
       // CMD16: block length 1
       printf ("CMD16: setting blocklength to 1\n");
       sd_issue_command (ret, SET_BLOCKLEN, 1, 500000);	//"beef, if i give you extra commands after an instruction they will only contain one word"
-      print_response_reg (emmc);
+      
       if (FAIL (ret))
 	{
+	  print_response_reg (emmc);
 	  printf ("SD_init: error sending SET_BLOCKLEN\n");
 	  return -1;
 	}
 
+	ret->block_size = 1;
+	controller_block_size = mmio_read (EMMC_BASE + EMMC_BLKSIZECNT);
+	controller_block_size &= (~0xfff);
+	controller_block_size |= 0x1;
+	mmio_write (EMMC_BASE + EMMC_BLKSIZECNT, controller_block_size);
+	
+	
       uint8_t force_erase_payload[513];
       memset (force_erase_payload, 0, 513);
       force_erase_payload[0] = 0b00001000;
-      force_erase_payload[3] = 0b00001000;
+     
       ret->buf = &force_erase_payload;
       ret->blocks_to_transfer = 1;
 
-
+	  printf ("CMD42: force erase\n");
       int retry_count = 0;
       int max_retries = 1;
       while (retry_count < max_retries)
@@ -1259,7 +1270,174 @@ sd_card_init (struct emmc_block_dev *emmc_dev, char force_erase)
 	  return -1;
 	}
 
+	printf ("CMD13: get status register\n");
+  sd_issue_command (ret, SEND_STATUS, ret->card_rca << 16, 500000);	//"beef, what are you up to right now"
+
+  if (FAIL (ret))
+    {
+      printf ("SD_init: error sending CMD13\n");
+      print_response_reg (emmc);
+      return -1;
     }
+
+  printf ("MMC status: 0x%08X\n", ret->last_r0);
+  printf ("\n\tMMC is %slocked.\n\n",
+	  (CHECKBIT (ret->last_r0, 25) == 1) ? "" : "not ");
+    }
+
+///////////////////////////////////////////////////////////////////////////////////////////
+//lock
+
+  if ('L' == mode) 
+    {
+
+      // CMD16: block length 1
+      printf ("CMD16: setting blocklength to 6\n");
+      sd_issue_command (ret, SET_BLOCKLEN, 6, 500000);	//"beef, if i give you extra commands after an instruction they will contain six words"
+      
+      if (FAIL (ret))
+	{
+	  print_response_reg (emmc);
+	  printf ("SD_init: error sending SET_BLOCKLEN\n");
+	  return -1;
+	}
+	
+	ret->block_size = 6;
+	controller_block_size = mmio_read (EMMC_BASE + EMMC_BLKSIZECNT);
+	controller_block_size &= (~0xfff);
+	controller_block_size |= 6;
+	mmio_write (EMMC_BASE + EMMC_BLKSIZECNT, controller_block_size);
+
+      uint8_t lock_payload[513];
+      memset (lock_payload, 0, 513);
+      lock_payload[0] = 0b00000101;
+      lock_payload[1] = 4;
+	  lock_payload[2] = 0;
+	  lock_payload[3] = 0;
+	  lock_payload[4] = 0;
+	  lock_payload[5] = 0;
+	  ret->buf = &lock_payload;
+      ret->blocks_to_transfer = 1;
+
+	  printf ("CMD42: set pw and lock\n");
+      int retry_count = 0;
+      int max_retries = 1;
+      while (retry_count < max_retries)
+	{
+
+	  sd_issue_command (ret, LOCK_UNLOCK, ret->card_rca << 16, 180000000);	//"beef, take this password and be locked now"
+
+	  if (SUCCESS (ret))
+	    break;
+	  else
+	    {
+	      printf ("SD_init: error sending CMD%i, ", LOCK_UNLOCK);
+	      printf ("error = %08x. ", ret->last_error);
+	      retry_count++;
+	      if (retry_count < max_retries)
+		printf ("Retrying...\n");
+	      else
+		printf ("Giving up.\n");
+	    }
+	}
+      if (retry_count == max_retries)
+	{
+	  ret->card_rca = 0;
+	  return -1;
+	}
+printf ("CMD13: get status register\n");
+  sd_issue_command (ret, SEND_STATUS, ret->card_rca << 16, 500000);	//"beef, what are you up to right now"
+
+  if (FAIL (ret))
+    {
+      printf ("SD_init: error sending CMD13\n");
+      print_response_reg (emmc);
+      return -1;
+    }
+
+  printf ("MMC status: 0x%08X\n", ret->last_r0);
+  printf ("\n\tMMC is %slocked.\n\n",
+	  (CHECKBIT (ret->last_r0, 25) == 1) ? "" : "not ");
+    }
+
+
+///////////////////////////////////////////////////////////////////////////////////////////
+//unlock
+
+  if ('U' == mode) 
+    {
+
+      // CMD16: block length 6
+      printf ("CMD16: setting blocklength to 6\n");
+      sd_issue_command (ret, SET_BLOCKLEN, 6, 500000);	//"beef, if i give you extra commands after an instruction they will contain six words"
+      
+      if (FAIL (ret))
+	{
+	  print_response_reg (emmc);
+	  printf ("SD_init: error sending SET_BLOCKLEN\n");
+	  return -1;
+	}
+	
+	ret->block_size = 6;
+	controller_block_size = mmio_read (EMMC_BASE + EMMC_BLKSIZECNT);
+	controller_block_size &= (~0xfff);
+	controller_block_size |= 6;
+	mmio_write (EMMC_BASE + EMMC_BLKSIZECNT, controller_block_size);
+
+      uint8_t unlock_payload[513];
+      memset (unlock_payload, 0, 513);
+      unlock_payload[0] = 0b00000010;
+      unlock_payload[1] = 4;
+	  unlock_payload[2] = 0;
+	  unlock_payload[3] = 0;
+	  unlock_payload[4] = 0;
+	  unlock_payload[5] = 0;
+	  
+	  ret->buf = &unlock_payload;
+      ret->blocks_to_transfer = 1;
+
+	  printf ("CMD42: unlock and clear password\n");
+      int retry_count = 0;
+      int max_retries = 1;
+      while (retry_count < max_retries)
+	{
+
+	  sd_issue_command (ret, LOCK_UNLOCK, ret->card_rca << 16, 180000000);	//"beef, heres the password, if its right unlock and forget the password"
+
+	  if (SUCCESS (ret))
+	    break;
+	  else
+	    {
+	      printf ("SD_init: error sending CMD%i, ", LOCK_UNLOCK);
+	      printf ("error = %08x. ", ret->last_error);
+	      retry_count++;
+	      if (retry_count < max_retries)
+		printf ("Retrying...\n");
+	      else
+		printf ("Giving up.\n");
+	    }
+	}
+      if (retry_count == max_retries)
+	{
+	  ret->card_rca = 0;
+	  return -1;
+	}
+printf ("CMD13: get status register\n");
+  sd_issue_command (ret, SEND_STATUS, ret->card_rca << 16, 500000);	//"beef, what are you up to right now"
+
+  if (FAIL (ret))
+    {
+      printf ("SD_init: error sending CMD13\n");
+      print_response_reg (emmc);
+      return -1;
+    }
+
+  printf ("MMC status: 0x%08X\n", ret->last_r0);
+  printf ("\n\tMMC is %slocked.\n\n",
+	  (CHECKBIT (ret->last_r0, 25) == 1) ? "" : "not ");
+    }
+
+
 
 
   // Reset interrupt register
@@ -1444,7 +1622,7 @@ view_register (uint32_t * emmc)
     {
 
       printf
-	(" (C)MDTM | (A)RG1 | (R)esponse | (S)tatus | (I)nterrupt | Control(0-2) | (Q)uit\n");
+	("(C)MDTM | (A)RG1 | (R)esponse | (S)tatus | (I)nterrupt | Control(0-2) | (Q)uit\n");
 
       scanf (" %c", &in);
       printf ("\n");
@@ -1490,11 +1668,30 @@ void
 force_erase (struct emmc_block_dev *emmc_dev)
 {
   printf
-    ("WARNING: This will (if it works) permanently erase the NAND!\n\n Enter H (big h) to continue.\n");
+    ("WARNING: This will permanently erase the (e)MMC!\n\n Enter H (big h) to continue.\n");
   char in;
   scanf (" %c", &in);
   if ('H' == in)
-    sd_card_init (emmc_dev, 'Y');
+    sd_card_init (emmc_dev, 'F');
+  return;
+}
+
+void
+lock (struct emmc_block_dev *emmc_dev)
+{
+  printf
+    ("WARNING: This will lock the (e)MMC!\n\n Enter H (big h) to continue.\n");
+  char in;
+  scanf (" %c", &in);
+  if ('H' == in)
+    sd_card_init (emmc_dev, 'L');
+  return;
+}
+
+void
+unlock (struct emmc_block_dev *emmc_dev)
+{
+  sd_card_init (emmc_dev, 'U');
   return;
 }
 
@@ -1549,7 +1746,7 @@ main ()
   if ((opendir ("/sys/bus/mmc/")) || (ENOENT != errno))
     {
       printf
-	("It seems the MMC/SD drivers are loaded. Please boot a kernel without it.\n");
+	("It seems the MMC/SD drivers are loaded. Please boot a kernel without them.\n");
       exit (EXIT_FAILURE);
     }
 
@@ -1599,7 +1796,7 @@ main ()
     {
 
       printf
-	("\n(S)afe run (Querry only) | (F)orce erase (Dangerous!) | (V)iew Register | (D)edication | (Q)uit\n");
+	("\n(D)edication | (S)afe run (Querry only) | (U)nlock | (F)orce erase (Dangerous!) | (L)ock (Dangerous!) | (Q)uit\n");
 
       scanf (" %c", &in);
       printf ("\n");
@@ -1609,7 +1806,15 @@ main ()
 	case 'S':
 	  sd_card_init (&emmc_device, '0');;
 	  continue;
-	  // case 'F': force_erase(&emmc_device); continue;
+/*	case 'F': 
+	  force_erase(&emmc_device);
+	  continue;
+	case 'L':
+	  lock(&emmc_device);
+	  continue;
+*/	case 'U':
+	  unlock(&emmc_device);
+	  continue;
 	case 'V':
 	  view_register (emmc);
 	  continue;

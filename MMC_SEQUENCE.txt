@@ -1,32 +1,18 @@
 CMD0 till idle
 
-CMD1 till ready
+CMD1(0x0) -> OCR
 
-CMD2
+CMD1(OCR) untill ready
 
-CMD3 -> standby
+CMD2 -> CID
 
+CMD3(RCA<<16)
 
-CMD9 (CSD)
-CMD10 (CID)
+CMD9(RCA<<16) -> CSD
 
-CMD7 -> 
+CMD7(RCA<<16)  
 
-
-
-
-
--------------------
-
-cmd 0 arg 0 r1 -> response 0 card idle mode
-
-cmd ALL_SEND_CID 2 arg 0 r2 -> response CID, identify mode
-
-cmd SEND_RELATIVE_ADDR 3 arg RCA<<16 r6 -> response DC, standby mode
-
-cmd SEND_CSD 9 arg RCA<<16 r2 -> response CSD
-
-loop till ready
+CMD13(RCA<<16)
 
 
-CMD SELECT_CARD arg RCA<<16 r1b -> response DC
+
