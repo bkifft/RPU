@@ -1,6 +1,15 @@
 RPU: Raspberry Pi based unbricker
 
+This tool is erotic cartoon ware.
+
+If you like it please send one erotic cartoon picture to rpu.bkifft.gbatemp@gmail.com (even if you draw one in paint yourself, everyone likes to draw the cock and balls).
+
+
+
 Even though this tool already unbricked 3DSes successfully, use it at your own risk.
+
+
+This tool will delete the 3DS NAND during the unlock. Don't use it without a backup of your own 3DS NAND.
 
 
 Bill of materials:
