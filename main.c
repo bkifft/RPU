@@ -1806,10 +1806,10 @@ main ()
 	case 'S':
 	  sd_card_init (&emmc_device, '0');;
 	  continue;
-/*	case 'F': 
+	case 'F': 
 	  force_erase(&emmc_device);
 	  continue;
-	case 'L':
+/*	case 'L':
 	  lock(&emmc_device);
 	  continue;
 */	case 'U':
