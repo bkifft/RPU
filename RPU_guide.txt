@@ -1,0 +1,80 @@
+RPU: Raspberry Pi based unbricker
+
+Bill of materials:
+
+-a launcher.dat bricked 3DS with the NAND dump HW mod as described in http://gbatemp.net/threads/nand-flash-dump-3ds-xl.350668/
+
+-a NAND backup from said 3DS (had to be done before the bricking occured and has to be from the bricked console). If you don't have this backup stop right here and pester GW for the unlock key.
+
+-a Raspberry Pi
+
+-a way to power the Pi (microUSB plug, either by using an adaptor cable or a smartphone charger)
+
+-a SD card >= 2GB
+
+-an USB stick >= 2GB
+
+-mini linux image https://drive.google.com/file/d/0B4Gv-RnAT-F_THRPT21NWjNWVXc (based on SpillPassPi http://www.spillmonkey.com/?page_id=5)
+
+-ability to connect the Pi to your ethernet network (for online acces and ssh)
+
+
+
+If you can't/won't connect the Pi to the network you also need: 
+-update file from https://github.com/bkifft/RPU/archive/master.zip
+
+-USB Keyboard
+
+-if you've got a Pi with only one USB port an USB hub (preferably powered)
+
+-HDMI cable and HDMI capable TV/monitor
+
+
+
+Instructions:
+
+1) Extract the linux image.
+
+2) Write the image to the SD card and the USB stick (using win32diskimager for example).
+
+3a) When you use ethernet: check the network settings in the file "interfaces" on the FAT partititon (the one shown on windows) of the USB stick and tweak it to your needs, it's preset to IP 192.168.1.244 and gateway 192.168.1.1.
+
+3b) When you dont use ethernet: rename the update zip file you downloaded earlier to RPU.zip and put it on the USB stick FAT partititon.
+
+3) Plug the SD card and the USB stick into the Pi (doesn't matter which USB port if you've got 2 or use an USB hub).
+
+4) Plug in the other stuff (ethernet or HDMI and USB keyboard) then power it up by plugging in the microUSB.
+
+5) Wait untill it booted (about one minute), if you have hooked it up via HDMI you will see the progress on the screen.
+
+6a) If you are using it via ethernet: ssh into it (you can use putty for that if you are on windows). 
+
+7) Log in using root as username and password.
+
+9) Type in 3dsunbrick and press enter.
+
+10) Wait for the tool to update itself and to load.
+
+11) Read the text on the screen.
+
+12) Remove the SD card.
+
+13) Plug in the SDmod card connected to your 3DS and turn the 3DS on.
+
+14) Press s and enter. The tool will try to connect to the 3DS and read it's status. If it shows an error message there are problems with your HW mod.
+
+15) If it reports the MMC to be locked (in other words: it was able to connect to the 3DS and your brick is launcher.dat related) press F and enter. Follow the on screen instruction.
+
+16) It might report a failure, but should ahve worked none the less. Just do another s and check if it still reports the MMC to be locked. If so power down the 3DS, restart the tool and try again. If it still fails drop me an email.
+
+17) Power off the 3DS, unplug it from the Pi, plug it in your SD reader, power it on, flash back your NAND backup (using win32diskimager for example).
+
+18) Dont forget to send an erotic cartoon picture to rpu.bkifft.gbatemp@gmail.com and enjoy your unbricked 3DS. 
+
+
+
+
+
+
+
+
