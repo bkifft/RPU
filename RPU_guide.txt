@@ -1,5 +1,8 @@
 RPU: Raspberry Pi based unbricker
 
+Even though this tool already unbricked 3DSes successfully, use it at your own risk.
+
+
 Bill of materials:
 
 -a launcher.dat bricked 3DS with the NAND dump HW mod as described in http://gbatemp.net/threads/nand-flash-dump-3ds-xl.350668/
