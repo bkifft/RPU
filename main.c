@@ -1555,7 +1555,7 @@ main ()
 
 
 
-  printf ("\e[1;1H\e[2J");
+//  printf ("\e[1;1H\e[2J");
   printf
     ("\n\n\n                  Dedicated to crazyace2011 @GBAtemp (crazyace @maxconsole)\n");
   printf
