@@ -1796,7 +1796,7 @@ main ()
     {
 
       printf
-	("\n(D)edication | (S)afe run (Querry only) | (U)nlock | (F)orce erase (Dangerous!) | (L)ock (Dangerous!) | (Q)uit\n");
+	("\n(D)edication | (S)afe run (Querry only) | (F)orce erase (Dangerous!) | (Q)uit\n");//(U)nlock | (L)ock (Dangerous!) |
 
       scanf (" %c", &in);
       printf ("\n");
