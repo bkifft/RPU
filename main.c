@@ -300,7 +300,7 @@ spi_mode_on ()
 static uint32_t
 sd_get_base_clock_hz ()
 {
-  return 250000000;
+  return 2500000000;
 }
 
 static int
@@ -395,6 +395,8 @@ sd_get_clock_divider (uint32_t base_clock, uint32_t target_rate)
 #endif
 
       return ret;
+	 // return 0x3ff;
+	  
     }
   else
     {
@@ -952,7 +954,7 @@ uint32_t controller_block_size;
   control1 |= 1;		// enable clock
 
   // Set to identification frequency (400 kHz)
-  uint32_t f_id = sd_get_clock_divider (base_clock, SD_CLOCK_ID);
+  uint32_t f_id = 0x3ff; //fix for crc failure when using strange cable, max divider == minimum clock rate //sd_get_clock_divider (base_clock, SD_CLOCK_ID);
   if (f_id == SD_GET_CLOCK_DIVIDER_FAIL)
     {
       printf ("EMMC: unable to get a valid clock divider for ID frequency\n");
