@@ -1,4 +1,4 @@
-[This guide like the whole project is released under the GPL. If you want to translate it or write your own guide feel free to do so and pleae send me a link to it so i can add it here.]
+[This guide like the whole project is released under the GPL. If you want to translate it or write your own guide feel free to do so and please send me a link to it so i can add it here.]
 
 Para visitar el tutorial en Español pulsa el siguiente enlace (Traducido por egarrote): http://www.elotrolado.net/hilo_tutorial-reparar-bricks-con-raspberry-pi-y-backup-de-la-nand_1979374
 
