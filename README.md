@@ -16,6 +16,8 @@ This tool can be used to unlock and erase the NAND of a launcher.dat bricked 3DS
 
 Check RPU_guide.txt for requirements and instructions.
 
+Para visitar el tutorial en Español pulsa el siguiente enlace (Traducido por egarrote): http://www.elotrolado.net/hilo_tutorial-reparar-bricks-con-raspberry-pi-y-backup-de-la-nand_1979374
+
 
 
 
