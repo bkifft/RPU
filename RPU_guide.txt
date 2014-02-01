@@ -1,3 +1,9 @@
+[This guide like the whole project is released under the GPL. If you want to translate it or write your own guide feel free to do so and pleae send me a link to it so i can add it here.]
+
+Para visitar el tutorial en Español pulsa el siguiente enlace (Traducido por egarrote): http://www.elotrolado.net/hilo_tutorial-reparar-bricks-con-raspberry-pi-y-backup-de-la-nand_1979374
+
+
+
 RPU: Raspberry Pi based 3DS unbricker
 
 This tool is erotic cartoon ware.
@@ -6,7 +12,7 @@ If you like it please send one erotic cartoon picture to rpu.bkifft.gbatemp@gmai
 
 
 
-Even though this tool already unbricked 3DSes successfully, use it at your own risk.
+Even though this tool already unbricked 3DSes successfully (ten that i know of and counting) use it at your own risk.
 
 
 This tool will delete the 3DS NAND during the unlock. Don't use it without a backup of your own 3DS NAND.
@@ -77,11 +83,11 @@ Instructions:
 
 15) If it reports the MMC to be locked (in other words: it was able to connect to the 3DS and your brick is launcher.dat related) press F and enter. Follow the on screen instruction.
 
-16) It might report a failure, but should ahve worked none the less. Just do another s and check if it still reports the MMC to be locked. If so power down the 3DS, restart the tool and try again. If it still fails drop me an email.
+16) It might report a failure, but should have worked none the less. Just do another s and check if it still reports the MMC to be locked. If so power down the 3DS, restart the tool and try again. If it still fails drop me an email.
 
 17) Power off the 3DS, unplug it from the Pi, plug it in your SD reader, power it on, flash back your NAND backup (using win32diskimager for example).
 
-18) Dont forget to send an erotic cartoon picture to rpu.bkifft.gbatemp@gmail.com and enjoy your unbricked 3DS. 
+18) Don't forget to send an erotic cartoon picture to rpu.bkifft.gbatemp@gmail.com and enjoy your unbricked 3DS. 
 
 
 
