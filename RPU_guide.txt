@@ -57,7 +57,7 @@ Instructions:
 
 3a) When you use ethernet: check the network settings in the file "interfaces" on the FAT partititon (the one shown on windows) of the USB stick and tweak it to your needs, it's preset to IP 192.168.1.244 and gateway 192.168.1.1.
 
-3b) When you dont use ethernet: rename the update zip file you downloaded earlier to RPU.zip and put it on the USB stick FAT partititon.
+3b) When you dont use ethernet: rename the update zip file you downloaded earlier to RPU.zip (capital letters do matter) and put it on the USB stick FAT partititon.
 
 3) Plug the SD card and the USB stick into the Pi (doesn't matter which USB port if you've got 2 or use an USB hub).
 
