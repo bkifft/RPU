@@ -18,6 +18,7 @@ Check RPU_guide.txt for requirements and instructions.
 
 Para visitar el tutorial en Español pulsa el siguiente enlace (Traducido por egarrote): http://www.elotrolado.net/hilo_tutorial-reparar-bricks-con-raspberry-pi-y-backup-de-la-nand_1979374
 
+Per leggere la guida in italiano (traduzione by StandardBus) visita http://www.moddingstudio.com/content.php?1697-Guida-al-recupero-dei-3DS-brickati-(Gateway-brick)
 
 
 
