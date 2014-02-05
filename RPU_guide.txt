@@ -81,7 +81,7 @@ Instructions:
 
 13) Plug in the SDmod card connected to your 3DS and turn the 3DS on.
 
-14) Press s and enter. The tool will try to connect to the 3DS and read it's status. If it shows an error message there are problems with your HW mod.
+14) Press s and enter. The tool will try to connect to the 3DS and read it's status. If it shows an error message there are problems with your HW mod or you get interference. Try detaching the charger from your 3DS and powering the Pi from a filtered and stabilized power source (like powering it from an USB port using an USB/microUSB cable). 
 
 15) If it reports the MMC to be locked (in other words: it was able to connect to the 3DS and your brick is launcher.dat related) press F and enter. Follow the on screen instruction.
 
