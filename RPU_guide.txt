@@ -4,6 +4,7 @@ Para visitar el tutorial en Español pulsa el siguiente enlace (Traducido por eg
 
 Per leggere la guida in italiano (traduzione by StandardBus) visita http://www.moddingstudio.com/content.php?1697-Guida-al-recupero-dei-3DS-brickati-(Gateway-brick)
 
+Deutsche Version dieses Guides (übersetzt von didi) auf http://www.psxtools.de/thread.php?threadid=61918
 
 
 RPU: Raspberry Pi based 3DS unbricker
@@ -14,7 +15,7 @@ If you like it please send one erotic cartoon picture to rpu.bkifft.gbatemp@gmai
 
 
 
-Even though this tool already unbricked 3DSes successfully (ten that i know of and counting) use it at your own risk.
+Even though this tool already unbricked 3DSes successfully (thirty-ish that i know of and counting) use it at your own risk.
 
 
 This tool will delete the 3DS NAND during the unlock. Don't use it without a backup of your own 3DS NAND.
