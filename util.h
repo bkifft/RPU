@@ -25,6 +25,33 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#define  CRC7_POLY		0x89
+
+
+uint8_t crctable[256];
+
+static void GenerateCRCTable()
+{
+    int i, j;
+ 
+    // generate a table value for all 256 possible byte values
+    for (i = 0; i < 256; i++)
+    {
+        crctable[i] = (i & 0x80) ? i ^ CRC7_POLY : i;
+        for (j = 1; j < 8; j++)
+        {
+            crctable[i] <<= 1;
+            if (crctable[i] & 0x80)
+                crctable[i] ^= CRC7_POLY;
+        }
+    }
+}
+
+static uint8_t  AddByteToCRC(uint8_t  crc, uint8_t  b)
+{
+	return crctable[(crc << 1) ^ b];
+}
+
 // Support for unaligned data access
 static inline void
 write_word (uint32_t val, uint8_t * buf, int offset) 
@@ -72,7 +99,12 @@ read_byte (uint8_t * buf, int offset)
 }
 
 
-
+uint8_t reverse_bitorder(uint8_t b) {
+   b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
+   b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
+   b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
+   return b;
+}
 
 
 uintptr_t alloc_buf (size_t size);
@@ -92,5 +124,7 @@ byte_swap (uint32_t in)
   return ret;
 }
 #endif // __GNUC__
+
+
 
 #endif

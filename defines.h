@@ -1,3 +1,28 @@
+//based on https://github.com/jncronin/rpi-boot/blob/master/emmc.c by John Cronin <jncronin@tysos.org>
+//tweaked to be run from userland by bkifft @GBAtemp
+
+/* 
+* Copyright (C) 2013 by John Cronin <jncronin@tysos.org>
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+
+* The above copyright notice and this permission notice shall be included in
+* all copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+* THE SOFTWARE.
+*/
+
 #ifndef _DEFINES_H
 #define _DEFINES_H
 #pragma once
@@ -218,7 +243,7 @@ static uint32_t sd_commands[] = {
   SD_CMD_INDEX (5) | SD_RESP_R4,
   SD_CMD_INDEX (6) | SD_RESP_R1,
   SD_CMD_INDEX (7) | SD_RESP_R1b,
-  SD_CMD_INDEX (8) | SD_RESP_R7,
+  SD_CMD_INDEX (8) | SD_RESP_R1 | SD_DATA_READ,//SD_RESP_R7,
   SD_CMD_INDEX (9) | SD_RESP_R2,
   SD_CMD_INDEX (10) | SD_RESP_R2,
   SD_CMD_INDEX (11) | SD_RESP_R1,
@@ -356,7 +381,7 @@ static uint32_t sd_acommands[] = {
 #define SELECT_CARD             7
 #define DESELECT_CARD           7
 #define SELECT_DESELECT_CARD    7
-#define SEND_IF_COND            8
+#define SEND_EXT_CSD            8
 #define SEND_CSD                9
 #define SEND_CID                10
 #define VOLTAGE_SWITCH          11
