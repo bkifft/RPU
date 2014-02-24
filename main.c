@@ -395,7 +395,7 @@ sd_get_clock_divider (uint32_t base_clock, uint32_t target_rate)
 #endif
 
       return ret;
-	  
+
     }
   else
     {
@@ -884,7 +884,7 @@ sd_card_init (struct emmc_block_dev *emmc_dev, char mode, int variant)
       return -1;
     }
 
-uint32_t controller_block_size;
+  uint32_t controller_block_size;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //host init
@@ -954,7 +954,7 @@ uint32_t controller_block_size;
   control1 |= 1;		// enable clock
 
   // Set to identification frequency (400 kHz)
-  uint32_t f_id = 0x3ff; //fix for crc failure when using strange cable, max divider == minimum clock rate //sd_get_clock_divider (base_clock, SD_CLOCK_ID);
+  uint32_t f_id = 0x3ff;	//fix for crc failure when using strange cable, max divider == minimum clock rate //sd_get_clock_divider (base_clock, SD_CLOCK_ID);
   if (f_id == SD_GET_CLOCK_DIVIDER_FAIL)
     {
       printf ("EMMC: unable to get a valid clock divider for ID frequency\n");
@@ -1076,7 +1076,7 @@ uint32_t controller_block_size;
   uint32_t card_cid_1 = ret->last_r1;
   uint32_t card_cid_2 = ret->last_r2;
   uint32_t card_cid_3 = ret->last_r3;
-  
+
 
   printf
     ("\nWarning! The CID is an unique serialnumber which might be traceable. Do not publish it in any way!\n");
@@ -1164,7 +1164,7 @@ uint32_t controller_block_size;
   uint32_t card_csd_1 = ret->last_r1;
   uint32_t card_csd_2 = ret->last_r2;
   uint32_t card_csd_3 = ret->last_r3;
-  
+
 
   printf ("\n\tCSD: %08X%08X%08X%08X\n\n", card_csd_3, card_csd_2, card_csd_1,
 	  card_csd_0);
@@ -1221,7 +1221,7 @@ uint32_t controller_block_size;
       // CMD16: block length 1
       printf ("CMD16: setting blocklength to 1\n");
       sd_issue_command (ret, SET_BLOCKLEN, 1, 500000);	//"beef, if i give you extra commands after an instruction they will only contain one word"
-      
+
       if (FAIL (ret))
 	{
 	  print_response_reg (emmc);
@@ -1229,21 +1229,21 @@ uint32_t controller_block_size;
 	  return -1;
 	}
 
-	ret->block_size = 1;
-	controller_block_size = mmio_read (EMMC_BASE + EMMC_BLKSIZECNT);
-	controller_block_size &= (~0xfff);
-	controller_block_size |= 0x1;
-	mmio_write (EMMC_BASE + EMMC_BLKSIZECNT, controller_block_size);
-	
-	
+      ret->block_size = 1;
+      controller_block_size = mmio_read (EMMC_BASE + EMMC_BLKSIZECNT);
+      controller_block_size &= (~0xfff);
+      controller_block_size |= 0x1;
+      mmio_write (EMMC_BASE + EMMC_BLKSIZECNT, controller_block_size);
+
+
       uint8_t force_erase_payload[513];
       memset (force_erase_payload, 0, 513);
       force_erase_payload[0] = 0b00001000;
-     
+
       ret->buf = &force_erase_payload;
       ret->blocks_to_transfer = 1;
 
-	  printf ("CMD42: force erase\n");
+      printf ("CMD42: force erase\n");
       int retry_count = 0;
       int max_retries = 1;
       while (retry_count < max_retries)
@@ -1270,118 +1270,119 @@ uint32_t controller_block_size;
 	  return -1;
 	}
 
-	printf ("CMD13: get status register\n");
-  sd_issue_command (ret, SEND_STATUS, ret->card_rca << 16, 500000);	//"beef, what are you up to right now"
+      printf ("CMD13: get status register\n");
+      sd_issue_command (ret, SEND_STATUS, ret->card_rca << 16, 500000);	//"beef, what are you up to right now"
 
-  if (FAIL (ret))
-    {
-      printf ("SD_init: error sending CMD13\n");
-      print_response_reg (emmc);
-      return -1;
-    }
+      if (FAIL (ret))
+	{
+	  printf ("SD_init: error sending CMD13\n");
+	  print_response_reg (emmc);
+	  return -1;
+	}
 
-  printf ("MMC status: 0x%08X\n", ret->last_r0);
-  printf ("\n\tMMC is %slocked.\n\n",
-	  (CHECKBIT (ret->last_r0, 25) == 1) ? "" : "not ");
+      printf ("MMC status: 0x%08X\n", ret->last_r0);
+      printf ("\n\tMMC is %slocked.\n\n",
+	      (CHECKBIT (ret->last_r0, 25) == 1) ? "" : "not ");
     }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //lock
 
-  if ('L' == mode) 
+  if ('L' == mode)
     {
-	int retry_count = 0;
-    int max_retries = 1;
-	
-//	printf("locking only in the debug version\n");
-//	return -1;
+      int retry_count = 0;
+      int max_retries = 1;
+
+//      printf("locking only in the debug version\n");
+//      return -1;
 
       // CMD16: block length 16
       printf ("CMD16: setting blocklength to 16\n");
       sd_issue_command (ret, SET_BLOCKLEN, 16, 500000);	//"beef, if i give you extra commands after an instruction they will contain three words"
-      
+
       if (FAIL (ret))
 	{
 	  print_response_reg (emmc);
 	  printf ("SD_init: error sending SET_BLOCKLEN\n");
 	  return -1;
 	}
-	
-	ret->block_size = 16;
-	controller_block_size = mmio_read (EMMC_BASE + EMMC_BLKSIZECNT);
-	controller_block_size &= (~0xfff);
-	controller_block_size |= 16;
-	mmio_write (EMMC_BASE + EMMC_BLKSIZECNT, controller_block_size);
-	
-	
+
+      ret->block_size = 16;
+      controller_block_size = mmio_read (EMMC_BASE + EMMC_BLKSIZECNT);
+      controller_block_size &= (~0xfff);
+      controller_block_size |= 16;
+      mmio_write (EMMC_BASE + EMMC_BLKSIZECNT, controller_block_size);
+
+
 ///////////////////////WP on
-  /*ret->blocks_to_transfer = 1;
-  ret->buf = (uint8_t *)csd_test;
-  
- 
-  printf("CSD new: %08X%08X%08X%08X\n", ((uint32_t*) ret->buf)[3], ((uint32_t*) ret->buf)[2], ((uint32_t*) ret->buf)[1],((uint32_t*) ret->buf)[0]);
-  //((uint32_t*) ret->buf)[0] = ((uint8_t*) ret->buf)[0] & 0x10;// set temp write protect flag
-  csd_test[0] = 0x10;
-  printf("CSD new: %08X%08X%08X%08X\n", ((uint32_t*) ret->buf)[3], ((uint32_t*) ret->buf)[2], ((uint32_t*) ret->buf)[1],((uint32_t*) ret->buf)[0]);
-  
-printf ("CMD27: write CSD\n");
-  retry_count = 0;
-    max_retries = 1;
-      while (retry_count < max_retries)
-	{
+      /*ret->blocks_to_transfer = 1;
+         ret->buf = (uint8_t *)csd_test;
 
-	  sd_issue_command (ret, PROGRAM_CSD, ret->card_rca << 16, 180000000);	//"beef, accept this new CSD"
 
-	  if (SUCCESS (ret))
-	    break;
-	  else
-	    {
-	      printf ("SD_init: error sending CMD%i, ", PROGRAM_CSD);
-	      printf ("error = %08x. ", ret->last_error);
-	      retry_count++;
-	      if (retry_count < max_retries)
-		printf ("Retrying...\n");
-	      else
-		printf ("Giving up.\n");
-	    }
-	}
-      if (retry_count == max_retries)
-	{
-	  ret->card_rca = 0;
-	  return -1;
-	}
-	 print_response_reg (emmc);
+         printf("CSD new: %08X%08X%08X%08X\n", ((uint32_t*) ret->buf)[3], ((uint32_t*) ret->buf)[2], ((uint32_t*) ret->buf)[1],((uint32_t*) ret->buf)[0]);
+         //((uint32_t*) ret->buf)[0] = ((uint8_t*) ret->buf)[0] & 0x10;// set temp write protect flag
+         csd_test[0] = 0x10;
+         printf("CSD new: %08X%08X%08X%08X\n", ((uint32_t*) ret->buf)[3], ((uint32_t*) ret->buf)[2], ((uint32_t*) ret->buf)[1],((uint32_t*) ret->buf)[0]);
 
-*/
+         printf ("CMD27: write CSD\n");
+         retry_count = 0;
+         max_retries = 1;
+         while (retry_count < max_retries)
+         {
+
+         sd_issue_command (ret, PROGRAM_CSD, ret->card_rca << 16, 180000000);       //"beef, accept this new CSD"
+
+         if (SUCCESS (ret))
+         break;
+         else
+         {
+         printf ("SD_init: error sending CMD%i, ", PROGRAM_CSD);
+         printf ("error = %08x. ", ret->last_error);
+         retry_count++;
+         if (retry_count < max_retries)
+         printf ("Retrying...\n");
+         else
+         printf ("Giving up.\n");
+         }
+         }
+         if (retry_count == max_retries)
+         {
+         ret->card_rca = 0;
+         return -1;
+         }
+         print_response_reg (emmc);
+
+       */
 
 
 ///////////////////lock
 
- 
-	ret->buf = (uint8_t *)dev_id;
-	uint32_t key[4];
-	key[0] = 0x17C6987E;
-	key[1] = 0x4401EDDE;
-	key[2] = 0x371AC568;
-	key[3] = 0x65FFB562;
-	
-	for (int i = 0; i<=3; ++i) key[i] = byte_swap(key[i]);
-	
 
-	
-	((uint32_t*) ret->buf)[0] ^= key[0];
-	((uint32_t*) ret->buf)[1] ^= key[1];
-	((uint32_t*) ret->buf)[2] ^= key[2];
-	((uint32_t*) ret->buf)[3] ^= key[3];
-	
-      ((uint8_t*) ret->buf)[0] = 0b00000101;//set password and lock
-      ((uint8_t*) ret->buf)[1] = 14; //14 byte password
+      ret->buf = (uint8_t *) dev_id;
+      uint32_t key[4];
+      key[0] = 0x17C6987E;
+      key[1] = 0x4401EDDE;
+      key[2] = 0x371AC568;
+      key[3] = 0x65FFB562;
 
-	  ret->blocks_to_transfer = 1;
+      for (int i = 0; i <= 3; ++i)
+	key[i] = byte_swap (key[i]);
 
-	  printf ("CMD42: set pw and lock\n");
-       retry_count = 0;
-       max_retries = 1;
+
+
+      ((uint32_t *) ret->buf)[0] ^= key[0];
+      ((uint32_t *) ret->buf)[1] ^= key[1];
+      ((uint32_t *) ret->buf)[2] ^= key[2];
+      ((uint32_t *) ret->buf)[3] ^= key[3];
+
+      ((uint8_t *) ret->buf)[0] = 0b00000101;	//set password and lock
+      ((uint8_t *) ret->buf)[1] = 14;	//14 byte password
+
+      ret->blocks_to_transfer = 1;
+
+      printf ("CMD42: set pw and lock\n");
+      retry_count = 0;
+      max_retries = 1;
       while (retry_count < max_retries)
 	{
 
@@ -1405,69 +1406,70 @@ printf ("CMD27: write CSD\n");
 	  ret->card_rca = 0;
 	  return -1;
 	}
-printf ("CMD13: get status register\n");
-  sd_issue_command (ret, SEND_STATUS, ret->card_rca << 16, 500000);	//"beef, what are you up to right now"
+      printf ("CMD13: get status register\n");
+      sd_issue_command (ret, SEND_STATUS, ret->card_rca << 16, 500000);	//"beef, what are you up to right now"
 
-  if (FAIL (ret))
-    {
-      printf ("SD_init: error sending CMD13\n");
-      print_response_reg (emmc);
-      return -1;
+      if (FAIL (ret))
+	{
+	  printf ("SD_init: error sending CMD13\n");
+	  print_response_reg (emmc);
+	  return -1;
+	}
+
+      printf ("MMC status: 0x%08X\n", ret->last_r0);
+      printf ("\n\tMMC is %slocked.\n\n",
+	      (CHECKBIT (ret->last_r0, 25) == 1) ? "" : "not ");
+
+
     }
-
-  printf ("MMC status: 0x%08X\n", ret->last_r0);
-  printf ("\n\tMMC is %slocked.\n\n",
-	  (CHECKBIT (ret->last_r0, 25) == 1) ? "" : "not ");
-    
-
-}
 ///////////////////////////////////////////////////////////////////////////////////////////
 //unlock
 
-  if ('U' == mode) 
+  if ('U' == mode)
     {
 
       // CMD16: block length 16
       printf ("CMD16: setting blocklength to 16\n");
       sd_issue_command (ret, SET_BLOCKLEN, 16, 500000);	//"beef, if i give you extra commands after an instruction they will contain sixteen words"
-      
+
       if (FAIL (ret))
 	{
 	  print_response_reg (emmc);
 	  printf ("SD_init: error sending SET_BLOCKLEN\n");
 	  return -1;
 	}
-	
-	ret->block_size = 16;
-	controller_block_size = mmio_read (EMMC_BASE + EMMC_BLKSIZECNT);
-	controller_block_size &= (~0xfff);
-	controller_block_size |= 16;
-	mmio_write (EMMC_BASE + EMMC_BLKSIZECNT, controller_block_size);
 
- 	  
-	  
-	  ret->buf = (uint8_t *)dev_id;
-	  
-	uint32_t key[4];
-    key[0] = 0x17C6987E;
-	key[1] = 0x4401EDDE;
-	key[2] = 0x371AC568;
-	key[3] = 0x65FFB562;
-	
-	for (int i = 0; i<=3; ++i) key[i] = byte_swap(key[i]); //byteorder is fun fun fun, in the sun sun sun
-	
-	((uint32_t*) ret->buf)[0] ^= key[0];
-	((uint32_t*) ret->buf)[1] ^= key[1];
-	((uint32_t*) ret->buf)[2] ^= key[2];
-	((uint32_t*) ret->buf)[3] ^= key[3];
-	
-    ((uint8_t*) ret->buf)[0] = 0b00000010;//remove password
-    ((uint8_t*) ret->buf)[1] = 14; //14 byte password
+      ret->block_size = 16;
+      controller_block_size = mmio_read (EMMC_BASE + EMMC_BLKSIZECNT);
+      controller_block_size &= (~0xfff);
+      controller_block_size |= 16;
+      mmio_write (EMMC_BASE + EMMC_BLKSIZECNT, controller_block_size);
 
 
-     ret->blocks_to_transfer = 1;
 
-	  printf ("CMD42: unlock and clear password\n");
+      ret->buf = (uint8_t *) dev_id;
+
+      uint32_t key[4];
+      key[0] = 0x17C6987E;
+      key[1] = 0x4401EDDE;
+      key[2] = 0x371AC568;
+      key[3] = 0x65FFB562;
+
+      for (int i = 0; i <= 3; ++i)
+	key[i] = byte_swap (key[i]);	//byteorder is fun fun fun, in the sun sun sun
+
+      ((uint32_t *) ret->buf)[0] ^= key[0];
+      ((uint32_t *) ret->buf)[1] ^= key[1];
+      ((uint32_t *) ret->buf)[2] ^= key[2];
+      ((uint32_t *) ret->buf)[3] ^= key[3];
+
+      ((uint8_t *) ret->buf)[0] = 0b00000010;	//remove password
+      ((uint8_t *) ret->buf)[1] = 14;	//14 byte password
+
+
+      ret->blocks_to_transfer = 1;
+
+      printf ("CMD42: unlock and clear password\n");
       int retry_count = 0;
       int max_retries = 1;
       while (retry_count < max_retries)
@@ -1493,23 +1495,23 @@ printf ("CMD13: get status register\n");
 	  ret->card_rca = 0;
 	  return -1;
 	}
-printf ("CMD13: get status register\n");
-  sd_issue_command (ret, SEND_STATUS, ret->card_rca << 16, 500000);	//"beef, what are you up to right now"
+      printf ("CMD13: get status register\n");
+      sd_issue_command (ret, SEND_STATUS, ret->card_rca << 16, 500000);	//"beef, what are you up to right now"
 
-  if (FAIL (ret))
-    {
-      printf ("SD_init: error sending CMD13\n");
-      print_response_reg (emmc);
-      return -1;
+      if (FAIL (ret))
+	{
+	  printf ("SD_init: error sending CMD13\n");
+	  print_response_reg (emmc);
+	  return -1;
+	}
+
+      printf ("MMC status: 0x%08X\n", ret->last_r0);
+      printf ("\n\tMMC is %slocked.\n\n",
+	      (CHECKBIT (ret->last_r0, 25) == 1) ? "" : "not ");
+
+
+
     }
-
-  printf ("MMC status: 0x%08X\n", ret->last_r0);
-  printf ("\n\tMMC is %slocked.\n\n",
-	  (CHECKBIT (ret->last_r0, 25) == 1) ? "" : "not ");
-	  
-	  
-    
-}
 
 
   // Reset interrupt register
@@ -1578,7 +1580,7 @@ sd_ensure_data_mode (struct emmc_block_dev *edev, char spi)
   else if (cur_state != 4)
     {
       // Not in the transfer state - re-initialise
-      int ret = sd_card_init (edev, spi,0);
+      int ret = sd_card_init (edev, spi, 0);
       if (ret != 0)
 	return ret;
     }
@@ -1744,7 +1746,7 @@ force_erase (struct emmc_block_dev *emmc_dev)
   char in;
   scanf (" %c", &in);
   if ('H' == in)
-    sd_card_init (emmc_dev, 'F',0);
+    sd_card_init (emmc_dev, 'F', 0);
   return;
 }
 
@@ -1756,7 +1758,7 @@ lock (struct emmc_block_dev *emmc_dev)
   char in;
   scanf (" %c", &in);
   if ('H' == in)
-    sd_card_init (emmc_dev, 'L',0);
+    sd_card_init (emmc_dev, 'L', 0);
   return;
 }
 
@@ -1786,7 +1788,7 @@ dedication ()
     ("Quote from http://www.maxconsole.com/maxcon_forums/threads/280010-Update-on-RMAing-my-3DS?p=1671397#post1671397:\n\n\"im on gbatemp and there is a bunch of little kids that think they know everything and every theory. its like when a child tells a parent I know I know I know gets annoying\"\n");
   printf
     ("\n\nAnyway, true shoutout to my man inian who played my brick guinea pig and all the fellas who gave constructive feedback on the \"Has anyone with a brick been able to recover\" thread, you know who you are.\n\n");
-	printf("Big thanks to the anonymous donor for the Vernam cipher key.\n\n");
+  printf ("Big thanks to the anonymous donor for the Vernam cipher key.\n\n");
 }
 
 
@@ -1825,7 +1827,7 @@ main ()
 
 
 
-printf ("\e[1;1H\e[2J");
+  printf ("\e[1;1H\e[2J");
 //printf("\n\nNew enhanced formula: true unlock instead of a force erase. (May contain nuts or GW secret keys.)\n");
   printf
     ("\n                  Dedicated to crazyace2011 @GBAtemp (crazyace @maxconsole)\n");
@@ -1835,26 +1837,34 @@ printf ("\e[1;1H\e[2J");
   printf
     ("If you like it please send one erotic cartoon picture to \nrpu.bkifft.gbatemp@gmail.com (even if you draw one in paint yourself, everyone likes to draw the cock and balls).\n");
 
-  printf("\nA statement from our sponsor (who gave me the Unlock key):\n");
-  printf("\"If you are reading this your 3DS has most likely been bricked by a Virus called Gateway 3DS.\n");
-  printf("If so return it and get a refund immediately.\n");
-  printf("Because what they have done is they made a soft-mod for the 3DS but then decided\n");
-  printf("that they would earn more money if they added their own AP.\n");
-  printf("They also added a lot of obfuscation (to prevent pirates from pirating their card and software),\n"); 
-  printf("which most likely also is the reason why some versions are not stable (and the brick code is triggered).\n");
-  printf("And as you already see on your 3DS they added brick code in the 2.0_2b Version.\n");
-  printf("This brick code is not even written correctly (else this unbricker wouldn't work).\n");
-  printf("So they even failed at programming brick code.\n");
-  printf("\nTo sum it all up you bought a badly programmed Virus.\n");
-  printf("\nBuy your games, don't pirate them. You see what happens when you pirate.\n");
-  printf("I hope you learned from your mistake.\"\n");
+  printf ("\nA statement from our sponsor (who gave me the Unlock key):\n");
+  printf
+    ("\"If you are reading this your 3DS has most likely been bricked by a Virus called Gateway 3DS.\n");
+  printf ("If so return it and get a refund immediately.\n");
+  printf
+    ("Because what they have done is they made a soft-mod for the 3DS but then decided\n");
+  printf ("that they would earn more money if they added their own AP.\n");
+  printf
+    ("They also added a lot of obfuscation (to prevent pirates from pirating their card and software),\n");
+  printf
+    ("which most likely also is the reason why some versions are not stable (and the brick code is triggered).\n");
+  printf
+    ("And as you already see on your 3DS they added brick code in the 2.0_2b Version.\n");
+  printf
+    ("This brick code is not even written correctly (else this unbricker wouldn't work).\n");
+  printf ("So they even failed at programming brick code.\n");
+  printf ("\nTo sum it all up you bought a badly programmed Virus.\n");
+  printf
+    ("\nBuy your games, don't pirate them. You see what happens when you pirate.\n");
+  printf ("I hope you learned from your mistake.\"\n");
   printf
     ("\n\n\n\nWARNING: Do not run this tool with a kernel that has the MMC/SD subsystem enabled!\n");
-  printf("\(The MinilLinux Image comes without them and the tool should refuse to run if the drivers are loaded)\n");
+  printf
+    ("\(The Mini Linux Image comes without them and the tool should refuse to run if the drivers are loaded)\n");
 
   printf ("\nWill continue in 10 seconds.\n");
 
- sleep (10);
+  sleep (10);
 
 //GenerateCRCTable();
 
@@ -1899,15 +1909,15 @@ printf ("\e[1;1H\e[2J");
 	case 'S':
 	  sd_card_init (&emmc_device, '0', 0);;
 	  continue;
-	case 'F': 
-	  force_erase(&emmc_device);
+	case 'F':
+	  force_erase (&emmc_device);
 	  continue;
 	case 'L':
-	  lock(&emmc_device);
+	  lock (&emmc_device);
 	  continue;
 
 	case 'U':
-	  unlock(&emmc_device);
+	  unlock (&emmc_device);
 	  continue;
 	case 'V':
 	  view_register (emmc);

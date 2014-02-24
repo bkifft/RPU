@@ -30,26 +30,28 @@
 
 uint8_t crctable[256];
 
-static void GenerateCRCTable()
+static void
+GenerateCRCTable ()
 {
-    int i, j;
- 
-    // generate a table value for all 256 possible byte values
-    for (i = 0; i < 256; i++)
+  int i, j;
+
+  // generate a table value for all 256 possible byte values
+  for (i = 0; i < 256; i++)
     {
-        crctable[i] = (i & 0x80) ? i ^ CRC7_POLY : i;
-        for (j = 1; j < 8; j++)
-        {
-            crctable[i] <<= 1;
-            if (crctable[i] & 0x80)
-                crctable[i] ^= CRC7_POLY;
-        }
+      crctable[i] = (i & 0x80) ? i ^ CRC7_POLY : i;
+      for (j = 1; j < 8; j++)
+	{
+	  crctable[i] <<= 1;
+	  if (crctable[i] & 0x80)
+	    crctable[i] ^= CRC7_POLY;
+	}
     }
 }
 
-static uint8_t  AddByteToCRC(uint8_t  crc, uint8_t  b)
+static uint8_t
+AddByteToCRC (uint8_t crc, uint8_t b)
 {
-	return crctable[(crc << 1) ^ b];
+  return crctable[(crc << 1) ^ b];
 }
 
 // Support for unaligned data access
@@ -99,11 +101,13 @@ read_byte (uint8_t * buf, int offset)
 }
 
 
-uint8_t reverse_bitorder(uint8_t b) {
-   b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
-   b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
-   b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
-   return b;
+uint8_t
+reverse_bitorder (uint8_t b)
+{
+  b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
+  b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
+  b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
+  return b;
 }
 
 
