@@ -1165,6 +1165,12 @@ sd_card_init (struct emmc_block_dev *emmc_dev, char mode, int variant)
   uint32_t card_csd_2 = ret->last_r2;
   uint32_t card_csd_3 = ret->last_r3;
 
+  uint32_t *dev_csd = (uint32_t *) malloc (5 * sizeof (uint32_t)); //extra space on the end
+  dev_csd[4] = 0;
+  dev_csd[3] = byte_swap(card_csd_0);
+  dev_csd[2] = byte_swap(card_csd_1);
+  dev_csd[1] = byte_swap(card_csd_2);
+  dev_csd[0] = byte_swap(card_csd_3);
 
   printf ("\n\tCSD: %08X%08X%08X%08X\n\n", card_csd_3, card_csd_2, card_csd_1,
 	  card_csd_0);
@@ -1209,6 +1215,18 @@ sd_card_init (struct emmc_block_dev *emmc_dev, char mode, int variant)
 	  (CHECKBIT (ret->last_r0, 25) == 1) ? "" : "not ");
 
 
+
+dev_csd = (uint32_t*)(((uint8_t*)dev_csd) + 1);//yeah, now it makes sense. i've got no clue why this happens, though -.- also i isued scheme for about five years, so i like brackets more then operator precedence
+
+/*
+printf("DEBUG: CSD: ");
+for (int i = 0; i<16;++i) printf("%02X", ((uint8_t*)dev_csd)[i]); 
+printf("\n");
+
+printf("DEBUG: CID: ");
+for (int i = 0; i<16;++i) printf("%02X", ((uint8_t*)dev_id)[i]);
+printf("\n");
+*/
 
 ////////////////////////////////////////////////////////////////////////////////////////
 //force erase
@@ -1315,15 +1333,21 @@ sd_card_init (struct emmc_block_dev *emmc_dev, char mode, int variant)
 
 
 ///////////////////////WP on
-      /*ret->blocks_to_transfer = 1;
-         ret->buf = (uint8_t *)csd_test;
+      ret->blocks_to_transfer = 1;
+      ret->buf = (uint8_t *)dev_csd;
+       
+	   ((uint8_t *) ret->buf)[14] |= 0x10; //bit twelve counted from the right and 0
+	   
+	   if(((uint8_t *) ret->buf)[14] & 0x20 != 0){
+	      printf("perm write protect would be set. bailing out\n");
+	      return -1;
+	   }
+/*
+printf("DEBUG: CSD with temp write set: ");
+for (int i = 0; i<16;++i) printf("%02X", ((uint8_t*)dev_csd)[i]); 
+printf("\n");*/
 
-
-         printf("CSD new: %08X%08X%08X%08X\n", ((uint32_t*) ret->buf)[3], ((uint32_t*) ret->buf)[2], ((uint32_t*) ret->buf)[1],((uint32_t*) ret->buf)[0]);
-         //((uint32_t*) ret->buf)[0] = ((uint8_t*) ret->buf)[0] & 0x10;// set temp write protect flag
-         csd_test[0] = 0x10;
-         printf("CSD new: %08X%08X%08X%08X\n", ((uint32_t*) ret->buf)[3], ((uint32_t*) ret->buf)[2], ((uint32_t*) ret->buf)[1],((uint32_t*) ret->buf)[0]);
-
+      
          printf ("CMD27: write CSD\n");
          retry_count = 0;
          max_retries = 1;
@@ -1350,9 +1374,9 @@ sd_card_init (struct emmc_block_dev *emmc_dev, char mode, int variant)
          ret->card_rca = 0;
          return -1;
          }
-         print_response_reg (emmc);
+         //print_response_reg (emmc);
 
-       */
+       
 
 
 ///////////////////lock
@@ -1446,6 +1470,7 @@ sd_card_init (struct emmc_block_dev *emmc_dev, char mode, int variant)
       mmio_write (EMMC_BASE + EMMC_BLKSIZECNT, controller_block_size);
 
 
+/////////unlock
 
       ret->buf = (uint8_t *) dev_id;
 
@@ -1466,6 +1491,10 @@ sd_card_init (struct emmc_block_dev *emmc_dev, char mode, int variant)
       ((uint8_t *) ret->buf)[0] = 0b00000010;	//remove password
       ((uint8_t *) ret->buf)[1] = 14;	//14 byte password
 
+/*printf("DEBUG: unlock payload: ");
+for (int i = 0; i<16;++i) printf("%02X", ((uint8_t*)ret->buf)[i]);
+printf("\n");
+*/
 
       ret->blocks_to_transfer = 1;
 
@@ -1495,6 +1524,51 @@ sd_card_init (struct emmc_block_dev *emmc_dev, char mode, int variant)
 	  ret->card_rca = 0;
 	  return -1;
 	}
+	
+///////////////////////WP off
+      ret->blocks_to_transfer = 1;
+      ret->buf = (uint8_t *)dev_csd;
+       
+	   ((uint8_t *) ret->buf)[14] &= ~(0x10); //bit twelve counted from the right and 0
+
+
+	   if(((uint8_t *) ret->buf)[14] & 0x20 != 0){
+	     printf("perm write protect would be set. bailing out\n");
+	     return -1;
+	   }
+/*printf("DEBUG: CSD with temp write prot unset: ");
+for (int i = 0; i<16;++i) printf("%02X", ((uint8_t*)dev_csd)[i]); 
+printf("\n");*/
+
+      
+         printf ("CMD27: write CSD\n");
+         retry_count = 0;
+         max_retries = 1;
+         while (retry_count < max_retries)
+         {
+
+         sd_issue_command (ret, PROGRAM_CSD, ret->card_rca << 16, 180000000);       //"beef, accept this new CSD"
+
+         if (SUCCESS (ret))
+         break;
+         else
+         {
+         printf ("SD_init: error sending CMD%i, ", PROGRAM_CSD);
+         printf ("error = %08x. ", ret->last_error);
+         retry_count++;
+         if (retry_count < max_retries)
+         printf ("Retrying...\n");
+         else
+         printf ("Giving up.\n");
+         }
+         }
+         if (retry_count == max_retries)
+         {
+         ret->card_rca = 0;
+         return -1;
+         }
+         //print_response_reg (emmc);
+
       printf ("CMD13: get status register\n");
       sd_issue_command (ret, SEND_STATUS, ret->card_rca << 16, 500000);	//"beef, what are you up to right now"
 
@@ -1866,11 +1940,6 @@ main ()
 
   sleep (10);
 
-//GenerateCRCTable();
-
-
-
-
 
 
   peri_base =
@@ -1898,8 +1967,11 @@ main ()
   while (toupper (in) != 'Q')
     {
 
-      printf
-	("\n(D)edication | (S)afe run (Querry only) | (U)nlock (Safe) | (L)ock (Dangerous!) | (F)orce erase (Dangerous!) | (Q)uit\n");
+    //printf	("\n(D)edication | (S)afe run (Querry only) | (U)nlock (Safe) | (L)ock (Dangerous!) | (F)orce erase (Dangerous!) | (Q)uit\n");
+	
+	  printf
+	("\n(D)edication | (S)afe run (Querry only) | (U)nbrick (Safe) | (Q)uit\n");
+
 
       scanf (" %c", &in);
       printf ("\n");
@@ -1909,13 +1981,13 @@ main ()
 	case 'S':
 	  sd_card_init (&emmc_device, '0', 0);;
 	  continue;
-	case 'F':
+/*	case 'F':
 	  force_erase (&emmc_device);
 	  continue;
 	case 'L':
 	  lock (&emmc_device);
 	  continue;
-
+*/
 	case 'U':
 	  unlock (&emmc_device);
 	  continue;

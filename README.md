@@ -9,10 +9,11 @@ This tool is erotic cartoon ware.
 If you like it please send one erotic cartoon picture to rpu.bkifft.gbatemp@gmail.com (even if you draw one in paint yourself, everyone likes to draw the cock and balls).
 
 WARNING: Do not run this tool with a kernel that has the MMC/SD subsystem enabled!
+(The supplied linux image has those drivers disabled. Also the tool should refuse to run if those drivers are loaded.)
 
 
 
-This tool can be used to unlock and erase the NAND of a launcher.dat bricked 3DS.
+This tool can be used to unbrick a launcher.dat bricked 3DS.
 
 Check RPU_guide.txt for requirements and instructions.
 
