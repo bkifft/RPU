@@ -82,9 +82,9 @@ Instructions:
 
 16) If it reports the MMC to be locked (in other words: it was able to connect to the 3DS and your brick is launcher.dat related) press u and enter.
 
-18) Unless the tool reported an error you should now have an unbricked 3DS.
+17) Unless the tool reported an error you should now have an unbricked 3DS.
 
-19) Don't forget to send an erotic cartoon picture to rpu.bkifft.gbatemp@gmail.com and enjoy your unbricked 3DS. 
+18) Don't forget to send an erotic cartoon picture to rpu.bkifft.gbatemp@gmail.com and enjoy your unbricked 3DS. 
 
 
 
