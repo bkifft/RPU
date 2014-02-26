@@ -20,5 +20,6 @@ Para visitar el tutorial en Español pulsa el siguiente enlace (Traducido por eg
 
 Per leggere la guida in italiano (traduzione by StandardBus) visita http://www.moddingstudio.com/content.php?1697-Guida-al-recupero-dei-3DS-brickati-(Gateway-brick)
 
+Deutsche Version dieses Guides (übersetzt von didi) auf http://www.psxtools.de/thread.php?threadid=61918
 
 
