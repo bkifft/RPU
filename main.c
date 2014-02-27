@@ -1902,7 +1902,7 @@ main ()
 
 
   printf ("\e[1;1H\e[2J");
-//printf("\n\nNew enhanced formula: true unlock instead of a force erase. (May contain nuts or GW secret keys.)\n");
+  printf("\n\nNew enhanced formula: true unbrick instead of a force erase. (May contain nuts or GW secret keys.)\n");
   printf
     ("\n                  Dedicated to crazyace2011 @GBAtemp (crazyace @maxconsole)\n");
   printf
