@@ -1587,6 +1587,92 @@ printf("\n");*/
 
     }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+//remove_writeprotect //ugly hack for spacejump
+
+  if ('R' == mode)
+    {
+
+      // CMD16: block length 16
+      printf ("CMD16: setting blocklength to 16\n");
+      sd_issue_command (ret, SET_BLOCKLEN, 16, 500000);	//"beef, if i give you extra commands after an instruction they will contain sixteen words"
+
+      if (FAIL (ret))
+	{
+	  print_response_reg (emmc);
+	  printf ("SD_init: error sending SET_BLOCKLEN\n");
+	  return -1;
+	}
+
+      ret->block_size = 16;
+      controller_block_size = mmio_read (EMMC_BASE + EMMC_BLKSIZECNT);
+      controller_block_size &= (~0xfff);
+      controller_block_size |= 16;
+      mmio_write (EMMC_BASE + EMMC_BLKSIZECNT, controller_block_size);
+
+
+
+///////////////////////WP off
+      ret->blocks_to_transfer = 1;
+      ret->buf = (uint8_t *)dev_csd;
+       
+	   ((uint8_t *) ret->buf)[14] &= ~(0x10); //bit twelve counted from the right and 0
+
+
+	   if(((uint8_t *) ret->buf)[14] & 0x20 != 0){
+	     printf("perm write protect would be set. bailing out\n");
+	     return -1;
+	   }
+/*printf("DEBUG: CSD with temp write prot unset: ");
+for (int i = 0; i<16;++i) printf("%02X", ((uint8_t*)dev_csd)[i]); 
+printf("\n");*/
+
+      
+         printf ("CMD27: write CSD\n");
+         int retry_count = 0;
+         int max_retries = 1;
+         while (retry_count < max_retries)
+         {
+
+         sd_issue_command (ret, PROGRAM_CSD, ret->card_rca << 16, 180000000);       //"beef, accept this new CSD"
+
+         if (SUCCESS (ret))
+         break;
+         else
+         {
+         printf ("SD_init: error sending CMD%i, ", PROGRAM_CSD);
+         printf ("error = %08x. ", ret->last_error);
+         retry_count++;
+         if (retry_count < max_retries)
+         printf ("Retrying...\n");
+         else
+         printf ("Giving up.\n");
+         }
+         }
+         if (retry_count == max_retries)
+         {
+         ret->card_rca = 0;
+         return -1;
+         }
+         //print_response_reg (emmc);
+
+      printf ("CMD13: get status register\n");
+      sd_issue_command (ret, SEND_STATUS, ret->card_rca << 16, 500000);	//"beef, what are you up to right now"
+
+      if (FAIL (ret))
+	{
+	  printf ("SD_init: error sending CMD13\n");
+	  print_response_reg (emmc);
+	  return -1;
+	}
+
+      printf ("MMC status: 0x%08X\n", ret->last_r0);
+      printf ("\n\tMMC is %slocked.\n\n",
+	      (CHECKBIT (ret->last_r0, 25) == 1) ? "" : "not ");
+
+
+
+    }
 
   // Reset interrupt register
   mmio_write (EMMC_BASE + EMMC_INTERRUPT, 0xffffffff);
@@ -1844,6 +1930,14 @@ unlock (struct emmc_block_dev *emmc_dev)
 }
 
 void
+removeprotect (struct emmc_block_dev *emmc_dev)
+{
+  sd_card_init (emmc_dev, 'R', 0);
+  return;
+}
+
+
+void
 dedication ()
 {
   printf
@@ -1990,6 +2084,9 @@ main ()
 */
 	case 'U':
 	  unlock (&emmc_device);
+	  continue;
+	case 'R':
+	  removeprotect (&emmc_device);
 	  continue;
 	case 'V':
 	  view_register (emmc);
