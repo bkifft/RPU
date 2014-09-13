@@ -23,7 +23,7 @@
 * THE SOFTWARE.
 */
 
-//#define DEBUG
+#define DEBUG
 
 #define _BSD_SOURCE		//ugly hack but the rewrite follows (nned to replace usleep() with the imho way less handy nanosleep()
 
