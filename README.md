@@ -15,6 +15,8 @@ WARNING: Do not run this tool with a kernel that has the MMC/SD subsystem enable
 
 This tool can be used to unbrick a launcher.dat bricked 3DS.
 
+WARNING: It seems that as of 2015-12-04 whoever is responsible for GW launcher.dat based bricks changed the MMC lock key. Therefore it's now impossible to unlock without a good NAND dump (at least for now, perhaps forever)!
+
 Check RPU_guide.txt for requirements and instructions.
 
 Para visitar el tutorial en Español pulsa el siguiente enlace (Traducido por egarrote): http://www.elotrolado.net/hilo_tutorial-reparar-bricks-con-raspberry-pi-y-backup-de-la-nand_1979374
