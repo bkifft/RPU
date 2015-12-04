@@ -1,3 +1,5 @@
+WARNING: It seems that as of 2015-12-04 whoever is responsible for GW launcher.dat based bricks changed the MMC lock key. Therefore it's now impossible to unlock without a good NAND dump (at least for now, perhaps forever)!
+
 [This guide like the whole project is released under the GPL. If you want to translate it or write your own guide feel free to do so and please send me a link to it so i can add it here.]
 
 Para visitar el tutorial en Español pulsa el siguiente enlace (Traducido por egarrote): http://www.elotrolado.net/hilo_tutorial-reparar-bricks-con-raspberry-pi-y-backup-de-la-nand_1979374
