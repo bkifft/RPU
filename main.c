@@ -1902,7 +1902,7 @@ void
 force_erase (struct emmc_block_dev *emmc_dev)
 {
   printf
-    ("WARNING: This will permanently erase the (e)MMC!\n\n Enter H (big h) to continue.\n");
+    ("WARNING: This will permanently erase the (e)MMC aka. NAND!\n\nContinue only if you do have a NAND dump of your 3DS!\n\n Enter H (big h) to continue.\n");
   char in;
   scanf (" %c", &in);
   if ('H' == in)
@@ -2075,10 +2075,10 @@ main ()
 	case 'S':
 	  sd_card_init (&emmc_device, '0', 0);;
 	  continue;
-/*	case 'F':
+	case 'F':
 	  force_erase (&emmc_device);
 	  continue;
-	case 'L':
+/*	case 'L':
 	  lock (&emmc_device);
 	  continue;
 */
